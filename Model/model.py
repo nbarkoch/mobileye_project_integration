@@ -3,8 +3,10 @@
 import numpy as np
 
 
-def detect_candidates(img: np.array):
+def detect_candidates_stub(img: np.array):
     return [[500, 500], [510, 500], [520, 500], [700, 500], [710, 500]], ["red", "red", "red", "green", "green"]
+
+
 
 
 def filter_tfl(img: np.array, candidates: np.array, auxiliary: np.array):

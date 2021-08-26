@@ -37,7 +37,7 @@ class TFL_Manager:
 
     def tfl_detection(self, image_path):
         img = np.array(Image.open(os.path.join("..", image_path)))
-        candidates, auxiliary = model.detect_candidates(img)
+        candidates, auxiliary = model.detect_candidates_stub(img)
         View.draw_candidates(candidates, auxiliary)
         curr_tfl, curr_ax = model.filter_tfl(img, candidates, auxiliary)
         View.draw_traffic_lights(curr_tfl, curr_ax)
