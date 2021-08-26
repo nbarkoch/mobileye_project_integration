@@ -43,7 +43,7 @@ class TFL_Manager:
         View.draw_traffic_lights(curr_tfl, curr_ax)
         if self.prev_img is not None:
             self.EM = np.dot(self.data['egomotion_' + str(self.curr_frame_id - 1) + '-' + str(self.curr_frame_id)], self.EM)
-            distances = model.calc_distances(self.prev_tfl, curr_tfl, self.focal, self.pp)
+            distances = model.calc_distances(self.prev_tfl, curr_tfl, self.EM, self.focal, self.pp)
             View.write_lengths(curr_tfl, curr_ax, distances)
             View.show(img)
 
