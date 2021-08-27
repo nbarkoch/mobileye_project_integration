@@ -16,6 +16,8 @@ except ImportError:
     print("Need to fix the installation")
     raise
 
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+
 
 def highlight_lights(image: np.ndarray):
     """
@@ -144,6 +146,51 @@ def test_find_tfl_lights(image_path, label_path=None):
     return tfl_images, no_tfl_images
 
 
+def find_candidates(c_image: np.ndarray):
+    """
+    Detect candidates for TFL lights. Use c_image, kwargs and you imagination to implement
+    :param c_image: The image itself as np.uint8, shape of (H, W, 3)
+    :return: 2 vectors, first vector contains tuples of (x,y) means the location of the candidates in 2d image
+    and second is vector of strings red/green for the mentioned candidates
+    """
+    kernel = np.array(Image.open(os.path.join(ROOT_DIR, 'kernel.png')).convert('L'))
+    kernel = kernel.astype('f')
+
+    highlighted_image = highlight_lights(c_image.copy())
+    fixed_image = \
+        sg.convolve(np.dot(highlighted_image, [0.2125, 0.7154, 0.0721]), kernel, mode='same', method='auto')
+
+    max_filter_image = scipy.ndimage.maximum_filter(fixed_image, 50)
+
+    candidates = []
+    auxiliary = []
+
+    for i in range(len(max_filter_image)):
+        for j in range(len(max_filter_image[i])):
+            if max_filter_image[i][j] == fixed_image[i][j] and max_filter_image[i][j] > 1500000:
+                if c_image[i][j][0] > c_image[i][j][1] >= c_image[i][j][2]\
+                        or not (c_image[i][j][0] < c_image[i][j][1] >= c_image[i][j][2]):
+                    candidates.append([j, i])
+                    auxiliary.append("red")
+                else:
+                    candidates.append([j, i])
+                    auxiliary.append("green")
+    return candidates, auxiliary
+
+
+def cropped_images(image: np.array, candidates: np.array):
+    # padding with 40 pixels
+    zeroes = np.zeros((len(image) + 81, len(image[0]) + 81, 3))
+    zeroes[41:image.shape[0] + 41, 41:image.shape[1] + 41] = image
+    padded_image = zeroes.astype(dtype=np.uint8)
+    candidates_images = []
+    # there's no difference between green or red colors of lights in the TFL
+    for x, y in candidates:
+        cropped = padded_image[y:y + 81, x:x + 81, :]
+        candidates_images.append(cropped.tolist())
+    return candidates_images
+
+
 if __name__ == '__main__':
     """
     simple way to run code is running this file,
@@ -151,3 +198,5 @@ if __name__ == '__main__':
     """
     show_find_tfl_lights('gallery/img2.png')  # , 'cologne_000113_000019_gtFine_labelIds.png')
     plt.show(block=True)
+
+

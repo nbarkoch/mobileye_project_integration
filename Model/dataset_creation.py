@@ -5,7 +5,7 @@ try:
     import argparse
     import matplotlib.pyplot as plt
     import numpy as np
-    from model_based_tfl_detection import test_find_tfl_lights
+    from Model.model_based_tfl_detection import test_find_tfl_lights
     from scipy import signal as sg
     from scipy.ndimage.filters import maximum_filter
     from PIL import Image, ImageEnhance, ImageFilter
@@ -114,8 +114,8 @@ def load_data():
     loads the dataset
     :return:
     """
-    loaded_data = np.fromfile("gtFine/val/data.bin",  dtype=np.uint8)
-    loaded_labels = np.fromfile("gtFine/train/labels.bin",  dtype=np.uint8)
+    loaded_data = np.fromfile("../gtFine/val/data.bin", dtype=np.uint8)
+    loaded_labels = np.fromfile("../gtFine/train/labels.bin", dtype=np.uint8)
     a = loaded_data.reshape(len(loaded_data)//19683, 81, 81, 3)
     for img in a:
         plt.imshow(img)
