@@ -18,12 +18,17 @@ class Model:
         auxiliary = [auxiliary[i] for i in range(len(candidates)) if boolean_list[i] == 1]
         return tfl_list, auxiliary
 
-    def calc_distances(self, prev_tfl, curr_tfl, EM, focal, pp):
+    def calc_distances(self, prev_tfl, curr_tfl, em, focal, pp):
+        # initial prev container
         prev_container = FrameContainer()
-        prev_container.traffic_light = np.array(prev_tfl)
-        prev_container.EM = []
+        prev_container.traffic_light = prev_tfl
+
+        # initial current container
         curr_container = FrameContainer()
-        curr_container.traffic_light = np.array(curr_tfl)
-        curr_container.EM = EM
+        curr_container.traffic_light = curr_tfl
+        curr_container.EM = em
+
+        # calculate distances
         curr_container = SFM.calc_TFL_dist(prev_container, curr_container, focal, pp)
-        return curr_container.traffic_lights_3d_location
+        if curr_container.traffic_lights_3d_location.any():
+            return curr_container.traffic_lights_3d_location[:, 2].tolist()

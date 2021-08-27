@@ -63,20 +63,21 @@ class TFL_NeuralNetworkModel:
     history = None
 
     def __init__(self):
-        print(os.path.join(ROOT_DIR, "../model.h5"))
-        if os.path.exists(os.path.join(ROOT_DIR, "../model.h5")):
+        model_path = os.path.join(ROOT_DIR, "../tfl_model.h5")
+        if os.path.exists(model_path):
 
-            self.m = load_model(os.path.join(ROOT_DIR, "../model.h5"))
+            self.m = load_model(model_path)
         else:
             self.m = self._init_tfl_model()
             self.m.compile(optimizer=Adam(), loss=sparse_categorical_crossentropy, metrics=['accuracy'])
             # train it, the model uses the 'train' dataset for learning.
             # We evaluate the "goodness" of the model, by predicting
             # the label of the images in the val dataset.
-            self.history = self.m.fit(train['images'], train['labels'], validation_data=(val['images'], val['labels']), epochs=4)
+            self.history = self.m.fit(train['images'], train['labels'],
+                                      validation_data=(val['images'], val['labels']), epochs=4)
             self.m.summary()
             # save model
-            self.m.save("model.h5")
+            self.m.save(model_path)
 
     def summary(self):
         self.m.summary()
