@@ -37,8 +37,7 @@ def highlight_lights(image: np.ndarray):
     mask_green = np.all(cropped_image[:, :] <= [245, 235, 245], axis=-1)
     mask_blue = np.all(cropped_image[:, :] <= [245, 245, 190], axis=-1)
 
-    mask_white = np.ma.mask_or(np.all(cropped_image[:, :] >= [215, 215, 215], axis=-1),
-                               np.all(cropped_image[:, :] <= [155, 155, 155], axis=-1))
+    mask_white = np.all(cropped_image[:, :] <= [155, 155, 155], axis=-1)
 
     mask = np.ma.mask_or(np.ma.mask_or(mask_red, mask_green), np.ma.mask_or(mask_blue, mask_white))
 
@@ -210,7 +209,7 @@ if __name__ == '__main__':
     simple way to run code is running this file,
     choose the image which you want to detect the traffic lights from
     """
-    show_find_tfl_lights('gallery/img2.png')  # , 'cologne_000113_000019_gtFine_labelIds.png')
+    show_find_tfl_lights(r'data\images\dusseldorf_000049_000024_leftImg8bit.png')  # , 'cologne_000113_000019_gtFine_labelIds.png')
     plt.show(block=True)
 
 
