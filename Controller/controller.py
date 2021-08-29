@@ -1,6 +1,4 @@
 import numpy as np
-
-from Model import model
 from Model.model import Model
 from View.view import View
 import pickle
@@ -44,9 +42,8 @@ class TFL_Manager:
 
         curr_tfl, curr_ax = self.m.filter_tfl(img, candidates, auxiliary)
 
-        EM = np.eye(4)
         if self.prev_img is not None:
-            EM = np.dot(self.data['egomotion_' + str(self.curr_frame_id - 1) + '-' + str(self.curr_frame_id)], EM)
+            EM = self.data['egomotion_' + str(self.curr_frame_id - 1) + '-' + str(self.curr_frame_id)]
             View.draw_candidates(candidates, auxiliary)
             View.draw_traffic_lights(curr_tfl, curr_ax)
             distances, curr_tfl = self.m.calc_distances(self.prev_tfl, curr_tfl, EM, self.focal, self.pp)

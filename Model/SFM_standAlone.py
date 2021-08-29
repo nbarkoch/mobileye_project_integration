@@ -4,8 +4,8 @@ import pickle
 from PIL import Image, ImageEnhance, ImageFilter
 from matplotlib.cbook import get_sample_data
 import matplotlib.pyplot as plt
-import os
 from Model import SFM
+from Model.SFM import FrameContainer
 
 
 def visualize(frame_id, prev_container, curr_container, focal, pp):
@@ -43,16 +43,6 @@ def visualize(frame_id, prev_container, curr_container, focal, pp):
     plt.show()
 
 
-class FrameContainer(object):
-    def __init__(self):
-        self.img = None
-        self.traffic_light = []
-        self.traffic_lights_3d_location = []
-        self.EM = []
-        self.corresponding_ind = []
-        self.valid = []
-
-
 def run(num_frame):
     # read data and run
     curr_frame_id = num_frame
@@ -77,4 +67,6 @@ def run(num_frame):
     curr_container = SFM.calc_TFL_dist(prev_container, curr_container, focal, pp)
     visualize(curr_frame_id, prev_container, curr_container, focal, pp)
 
-# run(25)
+
+# for i in range(25, 29):
+#     run(i)

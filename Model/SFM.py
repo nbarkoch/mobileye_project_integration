@@ -1,53 +1,36 @@
 import numpy as np
 
 
-def calc_TFL_dist(prev_container, curr_container, focal, pp):
-    """
+class FrameContainer(object):
+    def __init__(self):
+        self.traffic_light = []
+        self.traffic_lights_3d_location = []
+        self.EM = []
+        self.corresponding_ind=[]
+        self.valid=[]
 
-    :param prev_container:
-    :param curr_container:
-    :param focal:
-    :param pp:
-    :return:
-    """
+
+def calc_TFL_dist(prev_container, curr_container, focal, pp):
     norm_prev_pts, norm_curr_pts, R, foe, tZ = prepare_3D_data(prev_container, curr_container, focal, pp)
-    if abs(tZ) < 10e-6:
+    if(abs(tZ) < 10e-6):
         print('tz = ', tZ)
-    elif norm_prev_pts.size == 0:
+    elif (norm_prev_pts.size == 0):
         print('no prev points')
-    elif norm_curr_pts.size == 0:
+    elif (norm_curr_pts.size == 0):
         print('no curr points')
     else:
-        curr_container.corresponding_ind, curr_container.traffic_lights_3d_location, curr_container.valid = \
-            calc_3D_data(norm_prev_pts, norm_curr_pts, R, foe, tZ)
+        curr_container.corresponding_ind, curr_container.traffic_lights_3d_location, curr_container.valid = calc_3D_data(norm_prev_pts, norm_curr_pts, R, foe, tZ)
     return curr_container
 
 
 def prepare_3D_data(prev_container, curr_container, focal, pp):
-    """
-
-    :param prev_container:
-    :param curr_container:
-    :param focal:
-    :param pp:
-    :return:
-    """
     norm_prev_pts = normalize(prev_container.traffic_light, focal, pp)
     norm_curr_pts = normalize(curr_container.traffic_light, focal, pp)
-    R, foe, tZ = decompose(curr_container.EM)
+    R, foe, tZ = decompose(np.array(curr_container.EM))
     return norm_prev_pts, norm_curr_pts, R, foe, tZ
 
 
 def calc_3D_data(norm_prev_pts, norm_curr_pts, R, foe, tZ):
-    """
-
-    :param norm_prev_pts:
-    :param norm_curr_pts:
-    :param R:
-    :param foe:
-    :param tZ:
-    :return:
-    """
     norm_rot_pts = rotate(norm_prev_pts, R)
     pts_3D = []
     corresponding_ind = []
@@ -66,92 +49,76 @@ def calc_3D_data(norm_prev_pts, norm_curr_pts, R, foe, tZ):
 
 
 def normalize(pts, focal, pp):
-    """
-    transform pixels into normalized pixels using the focal length and principle point
-    :param pts: x ()
-    :param focal: focal length
-    :param pp: principle point
-    :return:
-    """
-    normalized_pts = []
-    for p in pts:
-        normalized_pts.append([(p[0] - pp[0]) / focal, (p[1] - pp[1]) / focal, 1])
-    return np.array(normalized_pts)
+    # transform pixels into normalized pixels using the focal length and principle point
+    return np.array(list(map(lambda x: [(x[0] - pp[0]) / focal, (x[1] - pp[1]) / focal], pts)))
 
 
 def unnormalize(pts, focal, pp):
-    """
-    transform normalized pixels into pixels using the focal length and principle point
-    :param pts:
-    :param focal:
-    :param pp:
-    :return:
-    """
-    return (focal * pts[:, :2]) + pp
+    # transform normalized pixels into pixels using the focal length and principle point
+    return np.array(list(map(lambda x: [(x[0] * focal) + pp[0], (x[1] * focal) + pp[1]], pts)))
 
 
 def decompose(EM):
-    """
-    extract R, foe and tZ from the Ego Motion
-    :param EM:
-    :return:
-    """
-    R = np.array(EM[:3, :3])
-    t = [EM[0][3]] + [EM[1][3]] + [EM[2][3]]
-    foe = np.array([t[0] / t[2]] + [t[1] / t[2]])
+    # extract R, foe and tZ from the Ego Motion
+    # using https://gamedev.stackexchange.com/questions/72044/why-do-we-use-4x4-matrices-to-transform-things-in-3d
+    R = EM[:3, :3]  # matrix 3X3 with det of 1
+    t = EM[:3, -1]  # getting last row 1X3
+
+    # foe = [tX / tZ, tY / tZ]
+    foe = [t[0] / t[2], t[1] / t[2]]
     return R, foe, t[2]
 
 
 def rotate(pts, R):
-    """
-    rotate the points - pts using R
-    :param pts:
-    :param R:
-    :return:
-    """
-    r_pts = []
-    for p in pts:
-        r_pt = np.dot(R, p)
-        r_pt = [r_pt[0] / r_pt[2], r_pt[1] / r_pt[2]]
-        r_pts.append(r_pt)
-    return np.array(r_pts)
+    # rotate the points - pts using R
+    res = list()
+    for point in pts:
+        point_rotate = R.dot(np.array([point[0], point[1], 1]))
+        # 𝑥_𝑟 = 𝑎/𝑐
+        # 𝑦_𝑟 = 𝑏/𝑐
+        point_rotate = (point_rotate[0], point_rotate[1]) / point_rotate[2]
+        res.append(point_rotate)
+    return np.array(res)
 
 
 def find_corresponding_points(p, norm_pts_rot, foe):
-    """
-    compute the epipolar line between p and foe
-    run over all norm_pts_rot and find the one closest to the epipolar line
-    return the closest point and its index
-    :param p:
-    :param norm_pts_rot:
-    :param foe:
-    :return:
-    """
-    eX, eY = foe[0], foe[1]
-    xP, yP = p[0], p[1]
-    m = (eY - yP) / (eX - xP)
-    n = (yP * eX - eY * xP) / (eX - xP)
-    d = lambda point: abs((m * point[0] + n - point[1]) / ((m ** 2 + 1) ** 0.5))
-    closest_point = min(norm_pts_rot, key=d)
-    return np.where(norm_pts_rot == closest_point), closest_point
+    # compute the epipolar line between p and foe
+    # run over all norm_pts_rot and find the one closest to the epipolar line
+    # return the closest point and its index
+    # compute the epipolar line between p and foe
+    # run over all norm_pts_rot and find the one closest to the epipolar line
+    min_distance = float("inf")
+    point_index = -1
+    for i, pt in enumerate(norm_pts_rot):
+        current_distance = np.linalg.norm(np.cross(foe - p, p - pt)) / np.linalg.norm(foe - p)
+        if current_distance < min_distance:
+            min_distance = current_distance
+            point_index = i
+
+    return point_index, norm_pts_rot[point_index]
 
 
 def calc_dist(p_curr, p_rot, foe, tZ):
-    """
-    calculate the distance of p_curr using x_curr, x_rot, foe_x and tZ
-    calculate the distance of p_curr using y_curr, y_rot, foe_y and tZ
-    combine the two estimations and return estimated Z
-    """
-    z_x = (tZ * (foe[0] - p_rot[0])) / (p_curr[0] - p_rot[0])
-    z_y = (tZ * (foe[1] - p_rot[1])) / (p_curr[1] - p_rot[1])
+    # calculate the distance of p_curr using x_curr, x_rot, foe_x and tZ
+    zX = (tZ * (foe[0] - p_rot[0]))  #/ p_curr[0]
+    # curr_rotate x
+    crX = p_curr[0] - p_rot[0]
 
-    Z_x_w = abs(p_curr[0] - p_rot[0])
-    Z_y_w = abs(p_curr[1] - p_rot[1])
+    if crX != 0:
+        zX /= crX
 
-    sum_w = Z_x_w + Z_y_w
-    if (Z_x_w + Z_y_w) == 0:
+    # calculate the distance of p_curr using y_curr, y_rot, foe_y and tZ
+    zY = (tZ * (foe[1] - p_rot[1])) #/ p_curr[1]
+    # curr_rotate y
+    crY = p_curr[1] - p_rot[1]
+    if crY != 0:
+        zY /= crY
+
+    # calculate z distance using curr and rotate positions
+    sumW = abs(crX) + abs(crY)
+
+    if sumW == 0:
         return 0
-    Z_x_w /= sum_w
-    Z_y_w /= sum_w
-    Z = Z_x_w * z_x + Z_y_w * z_y
-    return Z
+
+    Z = np.array([(abs(crX) / sumW) * zX, (abs(crY) / sumW) * zY])
+    return np.sum(Z)

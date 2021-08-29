@@ -1,5 +1,5 @@
 from Model import model_based_tfl_detection, SFM
-from Model.SFM_standAlone import FrameContainer
+from Model.SFM import FrameContainer
 from Model.neural_network_model import TFL_NeuralNetworkModel
 import numpy as np
 
