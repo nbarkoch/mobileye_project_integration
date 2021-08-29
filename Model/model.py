@@ -33,15 +33,5 @@ class Model:
         # calculate distances
         curr_container = SFM.calc_TFL_dist(prev_container, curr_container, focal, pp)
 
-        curr_container.traffic_lights_3d_location = \
-            np.array([curr_container.traffic_lights_3d_location[i]
-                      for i in range(len(curr_container.traffic_lights_3d_location))
-                      if curr_container.valid[i]])
-
-        curr_container.traffic_light = \
-            np.array([curr_container.traffic_light[i]
-                      for i in range(len(curr_container.traffic_light))
-                      if curr_container.valid[i]])
-
         if curr_container.traffic_lights_3d_location.any():
-            return curr_container.traffic_lights_3d_location[:, 2].tolist(), curr_container.traffic_light.tolist()
+            return curr_container.traffic_lights_3d_location[:, 2].tolist(), curr_container.valid

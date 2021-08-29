@@ -46,9 +46,9 @@ class TFL_Manager:
             EM = self.data['egomotion_' + str(self.curr_frame_id - 1) + '-' + str(self.curr_frame_id)]
             View.draw_candidates(candidates, auxiliary)
             View.draw_traffic_lights(curr_tfl, curr_ax)
-            distances, curr_tfl = self.m.calc_distances(self.prev_tfl, curr_tfl, EM, self.focal, self.pp)
+            distances, valid_list = self.m.calc_distances(self.prev_tfl, curr_tfl, EM, self.focal, self.pp)
             if distances:
-                View.write_lengths(curr_tfl, curr_ax, distances)
+                View.write_lengths(curr_tfl, curr_ax, distances, valid_list)
             View.show(img)
 
         self.prev_img = img

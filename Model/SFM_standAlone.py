@@ -68,5 +68,5 @@ def run(num_frame):
     visualize(curr_frame_id, prev_container, curr_container, focal, pp)
 
 
-# for i in range(25, 29):
-#     run(i)
+for i in range(25, 29):
+    run(i)

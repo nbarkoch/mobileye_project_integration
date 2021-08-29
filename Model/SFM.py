@@ -36,9 +36,10 @@ def calc_3D_data(norm_prev_pts, norm_curr_pts, R, foe, tZ):
     corresponding_ind = []
     validVec = []
     for p_curr in norm_curr_pts:
-        corresponding_p_ind, corresponding_p_rot = find_corresponding_points(p_curr, norm_rot_pts, foe)
+        corresponding_p_ind, corresponding_p_rot, valid_p = find_corresponding_points(p_curr, norm_rot_pts, foe)
+
         Z = calc_dist(p_curr, corresponding_p_rot, foe, tZ)
-        valid = (Z > 0)
+        valid = (Z > 0) and valid_p
         if not valid:
             Z = 0
         validVec.append(valid)
@@ -89,13 +90,15 @@ def find_corresponding_points(p, norm_pts_rot, foe):
     # run over all norm_pts_rot and find the one closest to the epipolar line
     min_distance = float("inf")
     point_index = -1
+    valid = True
     for i, pt in enumerate(norm_pts_rot):
         current_distance = np.linalg.norm(np.cross(foe - p, p - pt)) / np.linalg.norm(foe - p)
         if current_distance < min_distance:
             min_distance = current_distance
             point_index = i
-
-    return point_index, norm_pts_rot[point_index]
+    if min_distance > 0.0022:
+        valid = False
+    return point_index, norm_pts_rot[point_index], valid
 
 
 def calc_dist(p_curr, p_rot, foe, tZ):
