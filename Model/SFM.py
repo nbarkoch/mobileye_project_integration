@@ -86,8 +86,6 @@ def find_corresponding_points(p, norm_pts_rot, foe):
     # compute the epipolar line between p and foe
     # run over all norm_pts_rot and find the one closest to the epipolar line
     # return the closest point and its index
-    # compute the epipolar line between p and foe
-    # run over all norm_pts_rot and find the one closest to the epipolar line
     min_distance = float("inf")
     point_index = -1
     valid = True
