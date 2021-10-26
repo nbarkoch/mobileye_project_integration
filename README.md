@@ -9,5 +9,5 @@ with Image Processing (including: mask, convolution, non-max suppression), using
 ## Second step: filter the traffic lights  
 with Neural Network Model (which we trained with a dataset we created), using TensorFlow.  
 ## Third step: estimate distance from each traffic light  
-with Structure From Motion (using Ego Motion equation)  
+with Structure From Motion (using Ego Motion equation, the necessary parts provided as input from the car sensors)  
 
